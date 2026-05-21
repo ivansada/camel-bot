@@ -14,21 +14,26 @@ const authDir = './auth_render';
 if (fs.existsSync(authDir)) { fs.rmSync(authDir, { recursive: true }); }
 
 let currentQR = null;
-let qrLastUpdate = null;
+let currentPairCode = null;
+let pairGenerated = false;
 
-// QR endpoint
+// Endpoint utama: QR + kode pairing
 app.get('/qr', (req, res) => {
-  if (currentQR) {
-    res.send(`<html><body style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f0f2f5">
-      <h2 style="color:#075e54">Scan QR ini di WhatsApp</h2>
-      <p style="color:#666;margin-bottom:20px">Buka WA > Setelan > Perangkat Tertaut > Tautkan</p>
-      <img src="${currentQR}" style="max-width:400px;width:100%;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.15)">
-      <p style="color:#999;margin-top:20px;font-size:13px">QR diperbarui otomatis setiap 20 detik</p>
-      <script>setTimeout(() => location.reload(), 15000)</script>
-    </body></html>`);
-  } else {
-    res.send('<html><body style="font-family:sans-serif;text-align:center;padding:40px"><h2>Menunggu QR...</h2><script>setTimeout(() => location.reload(), 3000)</script></body></html>');
-  }
+  res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:20px;background:#f0f2f5">
+    <h2 style="color:#075e54">Camel Bot - Pairing</h2>
+    ${currentPairCode ? `<div style="background:#fff;border-radius:12px;padding:20px;margin:16px auto;max-width:400px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+      <p style="font-size:14px;color:#666">KODE PAIRING:</p>
+      <p style="font-size:36px;font-weight:bold;letter-spacing:6px;color:#075e54;margin:8px 0">${currentPairCode}</p>
+      <p style="font-size:13px;color:#999">WA > Setelan > Perangkat Tertaut > Tautkan</p>
+    </div>` : ''}
+    ${currentQR ? `<div style="background:#fff;border-radius:12px;padding:20px;margin:16px auto;max-width:400px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+      <p style="font-size:14px;color:#666;margin-bottom:12px">Atau scan QR:</p>
+      <img src="${currentQR}" style="max-width:350px;width:100%;border-radius:8px">
+    </div>` : ''}
+    ${!currentQR && !currentPairCode ? '<div style="padding:40px"><p>Menunggu QR...</p><script>setTimeout(()=>location.reload(),3000)</script></div>' : ''}
+    <p style="color:#999;font-size:11px;margin-top:20px">Halaman diperbarui otomatis</p>
+    <script>setTimeout(()=>location.reload(),10000)</script>
+  </body></html>`);
 });
 
 app.get('/health', (req, res) => res.send('OK'));
@@ -65,6 +70,18 @@ async function start() {
         console.log('QR baru digenerate');
       } catch (e) {
         console.error('QR error:', e.message);
+      }
+      
+      // Generate pairing code juga
+      if (!pairGenerated) {
+        pairGenerated = true;
+        try {
+          const code = await sock.requestPairingCode(PHONE);
+          currentPairCode = code;
+          console.log('KODE PAIRING:', code);
+        } catch (e) {
+          console.error('Pairing code fail:', e.message?.substring(0, 30));
+        }
       }
     }
 
