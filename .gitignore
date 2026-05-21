@@ -2,4 +2,3 @@ node_modules/
 auth*/
 *.db
 *.log
-web/public/qr_*.png
