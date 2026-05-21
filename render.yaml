@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: camel-bot
+    env: node
+    buildCommand: npm install
+    startCommand: node render.js
+    healthCheckPath: /health
+    envVars:
+      - key: PHONE
+        value: "6287787943496"
+      - key: NODE_ENV
+        value: production
