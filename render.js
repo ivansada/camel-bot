@@ -34,6 +34,8 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 
 // WhatsApp Bot
+let pairGenerated = false;
+
 async function start() {
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   const sock = makeWASocket({
@@ -51,7 +53,9 @@ async function start() {
   sock.ev.on('connection.update', async (update) => {
     const { connection, qr, lastDisconnect } = update;
 
-    if (connection === 'connecting' || qr) {
+    // Pairing code hanya sekali
+    if ((connection === 'connecting' || qr) && !pairGenerated) {
+      pairGenerated = true;
       try {
         const code = await sock.requestPairingCode(PHONE);
         global.pairingCode = code;
@@ -69,7 +73,10 @@ async function start() {
     if (connection === 'close') {
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log('Disconnected. Reconnect:', shouldReconnect);
-      if (shouldReconnect) setTimeout(start, 5000);
+      if (shouldReconnect) {
+        pairGenerated = false; // Reset untuk reconnect
+        setTimeout(start, 5000);
+      }
     }
   });
 }
