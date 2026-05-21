@@ -11,7 +11,9 @@ const AUTH_DIR = './auth_render';
 
 // Keep alive web server
 app.get('/health', (req, res) => res.send('OK'));
-app.get('/', (req, res) => {
+app.get('/', (req, res) => res.redirect('/code'));
+// Railway intercepts root, use /code instead
+app.get('/code', (req, res) => {
   const qrPath = path.join(__dirname, 'public', 'qr_render.png');
   if (fs.existsSync(qrPath)) {
     res.sendFile(qrPath);
