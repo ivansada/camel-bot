@@ -1,3 +1,8 @@
+const fs = require("fs");
+// Hapus auth lama biar fresh pairing
+const authDir = "./auth_render";
+if (fs.existsSync(authDir)) { fs.rmSync(authDir, { recursive: true }); console.log("Auth lama dihapus"); }
+
 const express = require('express');
 const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const pino = require('pino');
