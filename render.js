@@ -2,18 +2,14 @@ const fs = require("fs");
 // Hapus auth lama biar fresh pairing
 const authDir = "./auth_render";
 if (fs.existsSync(authDir)) { fs.rmSync(authDir, { recursive: true }); console.log("Auth lama dihapus"); }
-
 const express = require('express');
 const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const path = require('path');
-const fs = require('fs');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PHONE = process.env.PHONE || '6287787943496';
 const AUTH_DIR = './auth_render';
-
 // Keep alive web server
 app.get('/health', (req, res) => res.send('OK'));
 app.get('/', (req, res) => res.redirect('/code'));
@@ -33,14 +29,11 @@ app.get('/code', (req, res) => {
     `);
   }
 });
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Render server: port ${PORT}`);
 });
-
 // WhatsApp Bot
 let pairGenerated = false;
-
 async function start() {
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   const sock = makeWASocket({
@@ -52,12 +45,9 @@ async function start() {
     syncFullHistory: false,
     markOnlineOnConnect: false,
   });
-
   sock.ev.on('creds.update', saveCreds);
-
   sock.ev.on('connection.update', async (update) => {
     const { connection, qr, lastDisconnect } = update;
-
     // Pairing code hanya sekali
     if ((connection === 'connecting' || qr) && !pairGenerated) {
       pairGenerated = true;
@@ -69,12 +59,10 @@ async function start() {
         console.error('Pairing fail:', e.message?.substring(0, 30));
       }
     }
-
     if (connection === 'open') {
       console.log('BOT ONLINE!');
       global.pairingCode = null;
     }
-
     if (connection === 'close') {
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log('Disconnected. Reconnect:', shouldReconnect);
@@ -85,8 +73,6 @@ async function start() {
     }
   });
 }
-
 start().catch(console.error);
-
 process.on('SIGINT', () => process.exit(0));
 process.on('SIGTERM', () => process.exit(0));
