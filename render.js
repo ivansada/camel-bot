@@ -7,7 +7,7 @@ const qrcode = require('qrcode');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const PHONE = process.env.PHONE || '6287787943496';
+const PHONE = process.env.PHONE || '6285921368969';
 
 // Hapus auth lama biar fresh
 const authDir = './auth_render';
